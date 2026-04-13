@@ -38,14 +38,27 @@
         
         <h1 class="text-xl text-center brass-text mb-6">Create 기차 속도 계산기</h1>
 
-        <div class="mb-6">
-            <label class="block text-sm mb-2 text-gray-400">원하는 속도 입력</label>
-            <div class="flex gap-2">
-                <input type="number" id="speedInput" class="inset-metal flex-1 p-3 rounded outline-none focus:border-[#b58b5e] text-white" placeholder="속도를 입력하세요" step="any">
-                <select id="unitSelect" class="inset-metal p-3 rounded outline-none focus:border-[#b58b5e] text-white cursor-pointer">
-                    <option value="kmh">km/h</option>
-                    <option value="ms">m/s</option>
-                </select>
+        <div class="mb-6 space-y-4">
+            <div>
+                <label class="block text-sm mb-2 text-gray-400">목표 최고 속도</label>
+                <div class="flex gap-2">
+                    <input type="number" id="speedInput" class="inset-metal flex-1 p-3 rounded outline-none focus:border-[#b58b5e] text-white" placeholder="속도를 입력하세요" step="any">
+                    <select id="unitSelect" class="inset-metal p-3 rounded outline-none focus:border-[#b58b5e] text-white cursor-pointer">
+                        <option value="kmh">km/h</option>
+                        <option value="ms">m/s</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm mb-2 text-gray-400">실제 속도 비율</label>
+                    <input type="number" id="ratioInput" value="0.75" class="inset-metal w-full p-3 rounded outline-none focus:border-[#b58b5e] text-white" step="any">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm mb-2 text-gray-400">가속도 (m/s²)</label>
+                    <input type="number" id="accelInput" value="1.0" class="inset-metal w-full p-3 rounded outline-none focus:border-[#b58b5e] text-white" step="any">
+                </div>
             </div>
         </div>
 
@@ -66,6 +79,16 @@
                     <span class="text-sm text-gray-500">m/s</span>
                 </div>
             </div>
+
+            <div class="inset-metal p-4 rounded">
+                <div class="text-sm text-gray-400 mb-2">최고 속도 도달 시간</div>
+                <div class="text-xl text-gray-300" id="timeResult">0.00초</div>
+            </div>
+
+            <div class="inset-metal p-4 rounded">
+                <div class="text-sm text-gray-400 mb-2">최고 속도 도달 거리</div>
+                <div class="text-xl text-gray-300" id="distanceResult">0.00m</div>
+            </div>
         </div>
 
     </div>
@@ -73,42 +96,77 @@
     <script>
         const speedInput = document.getElementById('speedInput');
         const unitSelect = document.getElementById('unitSelect');
+        const ratioInput = document.getElementById('ratioInput');
+        const accelInput = document.getElementById('accelInput');
+        
         const configResult = document.getElementById('configResult');
         const actualKmhResult = document.getElementById('actualKmhResult');
         const actualMsResult = document.getElementById('actualMsResult');
+        const timeResult = document.getElementById('timeResult');
+        const distanceResult = document.getElementById('distanceResult');
 
         function calculateSpeed() {
             const inputVal = parseFloat(speedInput.value);
             const unit = unitSelect.value;
+            const ratio = parseFloat(ratioInput.value);
+            const accel = parseFloat(accelInput.value);
 
-            if (isNaN(inputVal)) {
+            if (isNaN(inputVal) || inputVal <= 0) {
                 configResult.textContent = '0.00';
                 actualKmhResult.textContent = '0.00';
                 actualMsResult.textContent = '0.00';
+                timeResult.textContent = '0.00초';
+                distanceResult.textContent = '0.00m';
                 return;
             }
 
             let actualKmh = 0;
             let actualMs = 0;
             let configValue = 0;
+            let timeSeconds = 0;
 
             if (unit === 'kmh') {
                 actualKmh = inputVal;
                 actualMs = inputVal / 3.6;
-                configValue = actualMs * (4 / 3);
-            } else if (unit === 'ms') {
+            } else {
                 actualMs = inputVal;
                 actualKmh = inputVal * 3.6;
-                configValue = actualMs * (4 / 3);
             }
 
-            configResult.textContent = configValue.toFixed(3);
+            const validRatio = isNaN(ratio) || ratio <= 0 ? 0.75 : ratio;
+            configValue = actualMs / validRatio;
+
             actualKmhResult.textContent = actualKmh.toFixed(2);
             actualMsResult.textContent = actualMs.toFixed(2);
+            configResult.textContent = configValue.toFixed(3);
+
+            if (!isNaN(accel) && accel > 0) {
+                timeSeconds = actualMs / accel;
+                const mins = Math.floor(timeSeconds / 60);
+                const secs = (timeSeconds % 60).toFixed(2);
+                
+                if (mins > 0) {
+                    timeResult.textContent = `${timeSeconds.toFixed(2)}초 (${mins}분 ${secs}초)`;
+                } else {
+                    timeResult.textContent = `${timeSeconds.toFixed(2)}초`;
+                }
+
+                const distance = (actualMs * actualMs) / (2 * accel);
+                if (distance >= 1000) {
+                    distanceResult.textContent = `${(distance / 1000).toFixed(2)}km (${distance.toFixed(2)}m)`;
+                } else {
+                    distanceResult.textContent = `${distance.toFixed(2)}m`;
+                }
+            } else {
+                timeResult.textContent = '계산 불가';
+                distanceResult.textContent = '계산 불가';
+            }
         }
 
         speedInput.addEventListener('input', calculateSpeed);
         unitSelect.addEventListener('change', calculateSpeed);
+        ratioInput.addEventListener('input', calculateSpeed);
+        accelInput.addEventListener('input', calculateSpeed);
     </script>
 </body>
 </html>
