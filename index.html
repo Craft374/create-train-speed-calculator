@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create 모드 기차 속도 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #d1d5db;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .brass-border {
+            border: 2px solid #b58b5e;
+        }
+        .brass-text {
+            color: #e6b981;
+        }
+        .dark-metal {
+            background-color: #2b2b2b;
+        }
+        .inset-metal {
+            background-color: #1e1e1e;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            border: 1px solid #3f3f3f;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="dark-metal brass-border p-6 rounded-lg w-full max-w-md shadow-2xl relative overflow-hidden">
+        
+        <h1 class="text-xl text-center brass-text mb-6">Create 기차 속도 계산기</h1>
+
+        <div class="mb-6">
+            <label class="block text-sm mb-2 text-gray-400">원하는 속도 입력</label>
+            <div class="flex gap-2">
+                <input type="number" id="speedInput" class="inset-metal flex-1 p-3 rounded outline-none focus:border-[#b58b5e] text-white" placeholder="속도를 입력하세요" step="any">
+                <select id="unitSelect" class="inset-metal p-3 rounded outline-none focus:border-[#b58b5e] text-white cursor-pointer">
+                    <option value="kmh">km/h</option>
+                    <option value="ms">m/s</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="inset-metal p-4 rounded relative">
+                <div class="text-sm text-gray-400 mb-1">컨피그 입력값 (m/s)</div>
+                <div class="text-2xl brass-text" id="configResult">0.00</div>
+            </div>
+
+            <div class="inset-metal p-4 rounded">
+                <div class="text-sm text-gray-400 mb-2">실제 속도</div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-gray-300" id="actualKmhResult">0.00</span>
+                    <span class="text-sm text-gray-500">km/h</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300" id="actualMsResult">0.00</span>
+                    <span class="text-sm text-gray-500">m/s</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const speedInput = document.getElementById('speedInput');
+        const unitSelect = document.getElementById('unitSelect');
+        const configResult = document.getElementById('configResult');
+        const actualKmhResult = document.getElementById('actualKmhResult');
+        const actualMsResult = document.getElementById('actualMsResult');
+
+        function calculateSpeed() {
+            const inputVal = parseFloat(speedInput.value);
+            const unit = unitSelect.value;
+
+            if (isNaN(inputVal)) {
+                configResult.textContent = '0.00';
+                actualKmhResult.textContent = '0.00';
+                actualMsResult.textContent = '0.00';
+                return;
+            }
+
+            let actualKmh = 0;
+            let actualMs = 0;
+            let configValue = 0;
+
+            if (unit === 'kmh') {
+                actualKmh = inputVal;
+                actualMs = inputVal / 3.6;
+                configValue = actualMs * (4 / 3);
+            } else if (unit === 'ms') {
+                actualMs = inputVal;
+                actualKmh = inputVal * 3.6;
+                configValue = actualMs * (4 / 3);
+            }
+
+            configResult.textContent = configValue.toFixed(3);
+            actualKmhResult.textContent = actualKmh.toFixed(2);
+            actualMsResult.textContent = actualMs.toFixed(2);
+        }
+
+        speedInput.addEventListener('input', calculateSpeed);
+        unitSelect.addEventListener('change', calculateSpeed);
+    </script>
+</body>
+</html>
